@@ -419,32 +419,36 @@ function isCycleOSAvailable(){
    ═══════════════════════════════════════════════════════════════════ */
 
 async function doLogin(){
-  const email = document.getElementById('loginEmail').value.trim();
-  const pass = document.getElementById('loginPass').value;
+  const emailEl = document.getElementById('loginEmail');
+  const passEl  = document.getElementById('loginPass');
+  if(!emailEl || !passEl){
+    // Login-Form wurde überschrieben → wiederherstellen und neu versuchen
+    restoreLoginScreen();
+    return;
+  }
+  const email = emailEl.value.trim();
+  const pass  = passEl.value;
   const err = document.getElementById('loginErr');
-  const ok = document.getElementById('loginOk');
-  err.style.display = 'none';
-  ok.style.display = 'none';
+  const ok  = document.getElementById('loginOk');
+  if(err) err.style.display = 'none';
+  if(ok)  ok.style.display = 'none';
 
   if(!email || !pass){
-    err.textContent = 'Bitte E-Mail und Passwort eingeben.';
-    err.style.display = 'block';
+    if(err){ err.textContent = 'Bitte E-Mail und Passwort eingeben.'; err.style.display = 'block'; }
     return;
   }
 
   try{
     const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
     if(error){
-      err.textContent = 'Login fehlgeschlagen. Bitte E-Mail und Passwort prüfen.';
-      err.style.display = 'block';
+      if(err){ err.textContent = 'Login fehlgeschlagen. Bitte E-Mail und Passwort prüfen.'; err.style.display = 'block'; }
       return;
     }
     STATE.user = data.user;
     STATE.mode = 'live';
     await afterLogin();
   }catch(e){
-    err.textContent = 'Fehler: ' + e.message;
-    err.style.display = 'block';
+    if(err){ err.textContent = 'Fehler: ' + e.message; err.style.display = 'block'; }
   }
 }
 
@@ -456,9 +460,27 @@ async function doLogout(){
   STATE.team = null;
   STATE.myTeams = [];
   STATE.mode = 'live';
-  document.getElementById('loginPass').value = '';
   document.getElementById('appScreen').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
+  restoreLoginScreen();
+}
+
+/**
+ * Stellt den originalen Login-Bildschirm wieder her.
+ * Wird aufgerufen wenn das innerHTML durch Demo-Modus oder First-Setup
+ * überschrieben wurde.
+ */
+let ORIGINAL_LOGIN_HTML = null;
+function saveOriginalLoginHTML(){
+  if(ORIGINAL_LOGIN_HTML === null){
+    ORIGINAL_LOGIN_HTML = document.getElementById('loginScreen').innerHTML;
+  }
+}
+function restoreLoginScreen(){
+  const screen = document.getElementById('loginScreen');
+  if(ORIGINAL_LOGIN_HTML && screen.innerHTML !== ORIGINAL_LOGIN_HTML){
+    screen.innerHTML = ORIGINAL_LOGIN_HTML;
+  }
+  screen.style.display = 'flex';
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -530,10 +552,11 @@ async function afterLogin(){
 
 /**
  * Zeigt eine Fehler-Meldung auf dem Login-Screen.
+ * Stellt zuerst das Original-Login-HTML wieder her falls es überschrieben wurde.
  */
 function showLoginError(msg){
   document.getElementById('appScreen').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
+  restoreLoginScreen();
   const err = document.getElementById('loginErr');
   const ok = document.getElementById('loginOk');
   if(ok) ok.style.display = 'none';
@@ -1240,8 +1263,11 @@ function secureQuery(table){
    🚀 INIT
    ═══════════════════════════════════════════════════════════════════ */
 
-// Beim Laden: Check ob Session existiert
+// Beim Laden: Original-Login-HTML speichern + Check ob Session existiert
 window.addEventListener('load', async () => {
+  // Sichern damit wir es nach Demo/Setup wiederherstellen können
+  saveOriginalLoginHTML();
+
   try{
     const { data: { session } } = await sb.auth.getSession();
     if(session && session.user){
