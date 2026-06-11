@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="theme-color" content="#0d1520"/>
+<title>PrefOS · Master</title>
+
+<!-- ICONS + LIBS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+/* ════════════════════════════════════════════════════════════════
+   🎨 DESIGN-SYSTEM · Gold/Navy (aus letzeindex_11c_.html übernommen)
+   ════════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#0d1520;
+  --bg-deep:#0a1018;
+  --card:#111d2e;
+  --card-2:#16243a;
+  --line:rgba(255,255,255,0.07);
+  --line-2:rgba(255,255,255,0.12);
+  --text:#e2e8f0;
+  --text-dim:rgba(255,255,255,0.5);
+  --text-faint:rgba(255,255,255,0.3);
+
+  --gold:#c9a84c;
+  --gold-d:#9a7c2e;
+  --gold-soft:rgba(201,168,76,0.15);
+
+  --primary:#e07b39;
+  --green:#22c55e;
+  --blue:#6366f1;
+  --red:#ef4444;
+  --purple:#a855f7;
+
+  --r-card:12px;
+  --r-btn:8px;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Segoe UI',sans-serif;overflow-x:hidden}
+input,select,textarea,button{font-family:inherit}
+select option{background:#1e2a3a;color:var(--text)}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:2px}
+
+input:focus,select:focus,textarea:focus{outline:2px solid rgba(201,168,76,0.4)!important;border-color:rgba(201,168,76,0.4)!important}
+
+/* ── BASIS-KOMPONENTEN ── */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card)}
+.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.05em}
+
+.btn-pri{padding:10px 16px;font-size:13px;font-weight:700;background:linear-gradient(135deg,var(--gold),var(--gold-d));border:none;border-radius:var(--r-btn);color:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:6px;letter-spacing:.04em}
+.btn-pri:hover{filter:brightness(1.08)}
+.btn-pri:disabled{opacity:.5;cursor:not-allowed}
+
+.btn-sec{padding:9px 14px;font-size:13px;font-weight:600;background:rgba(255,255,255,0.06);border:1px solid var(--line-2);border-radius:var(--r-btn);color:rgba(255,255,255,0.75);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-sec:hover{background:rgba(255,255,255,0.1)}
+
+.btn-pdf{padding:8px 12px;font-size:12px;font-weight:700;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);border-radius:var(--r-btn);color:#818cf8;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+
+.btn-danger{padding:8px 14px;font-size:12px;font-weight:700;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:var(--r-btn);color:var(--red);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+
+.inp{width:100%;font-size:13px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid var(--line-2);border-radius:7px;color:var(--text)}
+.lbl{font-size:10px;font-weight:700;color:var(--text-dim);letter-spacing:.08em;margin-bottom:6px;display:block;text-transform:uppercase}
+
+/* ── LOGIN-SCREEN ── */
+.center-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:16px}
+.logo-txt{font-size:28px;font-weight:900;letter-spacing:-.03em;background:linear-gradient(135deg,#e7d18a 25%,var(--gold-d));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:var(--bg-deep);border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:50;transition:transform .25s}
+.main-wrap{margin-left:240px;min-height:100vh;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;padding:11px 18px;background:rgba(13,21,32,0.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);min-height:56px}
+.content{flex:1;padding:20px;max-width:1280px;width:100%;margin:0 auto}
+
+.hamburger{display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:6px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:40}
+
+.nav-section-label{font-size:9px;font-weight:800;color:var(--text-faint);letter-spacing:.12em;padding:14px 16px 6px;text-transform:uppercase}
+.btn-nav{display:flex;align-items:center;gap:11px;padding:10px 16px;border:none;border-radius:8px;background:transparent;color:var(--text-dim);cursor:pointer;font-size:13px;font-weight:500;width:calc(100% - 16px);margin:1px 8px;text-align:left;transition:all .15s;letter-spacing:.01em}
+.btn-nav:hover{background:rgba(255,255,255,0.04);color:var(--text)}
+.btn-nav.active{background:var(--gold-soft);color:var(--gold);font-weight:700}
+.btn-nav i{font-size:16px;flex-shrink:0}
+
+/* ── MOBILE ── */
+@media(max-width:767px){
+  .sidebar{transform:translateX(-240px)}
+  .sidebar.open{transform:translateX(0)}
+  .main-wrap{margin-left:0}
+  .hamburger{display:flex}
+  .overlay.show{display:block}
+  .hide-mobile{display:none!important}
+  .content{padding:14px}
+}
+
+/* ── ROLE BADGE ── */
+.role-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;letter-spacing:.06em;border-radius:6px;padding:4px 9px;white-space:nowrap;text-transform:uppercase}
+.role-badge.superadmin{color:var(--primary);background:rgba(224,123,57,0.12);border:1px solid rgba(224,123,57,0.35)}
+.role-badge.cheftrainer{color:var(--green);background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35)}
+.role-badge.assistent{color:#94a3b8;background:rgba(148,163,184,0.12);border:1px solid rgba(148,163,184,0.35)}
+.role-badge.funktionaer{color:var(--blue);background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.35)}
+.role-badge.spieler{color:var(--gold);background:var(--gold-soft);border:1px solid rgba(201,168,76,0.35)}
+
+/* ── PLACEHOLDER ── */
+.placeholder-view{padding:40px 20px;text-align:center}
+.placeholder-view i{font-size:48px;color:var(--text-faint);margin-bottom:16px;display:block}
+.placeholder-view h2{font-size:18px;font-weight:700;margin-bottom:8px;color:var(--text)}
+.placeholder-view p{font-size:13px;color:var(--text-dim);max-width:420px;margin:0 auto;line-height:1.6}
+
+/* ── STAT-GRID ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+@media(max-width:600px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.stat-card .stat-label{font-size:10px;font-weight:700;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.stat-card .stat-value{font-size:24px;font-weight:800;letter-spacing:-.02em}
+
+/* ── TEAM-SWITCHER ── */
+.team-switcher{padding:6px 10px;background:rgba(255,255,255,0.05);border:1px solid var(--line-2);border-radius:7px;color:var(--text);font-size:12px;font-weight:600;cursor:pointer;min-width:140px}
+
+/* ── DEMO-MODE BANNER ── */
+.demo-banner{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:8px;padding:9px 14px;margin-bottom:16px;font-size:11px;color:#86efac;display:flex;align-items:center;gap:8px;font-weight:600}
+.demo-banner i{font-size:14px}
+
+/* ── TILE GRID (für Rollen-Auswahl, Onboarding etc.) ── */
+.tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px}
+.tile{background:var(--card-2);border:1px solid var(--line-2);border-radius:10px;padding:14px;cursor:pointer;transition:all .15s;text-align:left;display:flex;align-items:center;gap:12px}
+.tile:hover{border-color:rgba(201,168,76,0.4);transform:translateY(-1px)}
+.tile-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tile-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:2px}
+.tile-sub{font-size:11px;color:var(--text-dim);line-height:1.4}
+
+/* ── LOCKED-INFO (für Module die der Rolle nicht erlaubt sind) ── */
+.locked-view{padding:60px 20px;text-align:center}
+.locked-view i{font-size:48px;color:var(--red);margin-bottom:16px;display:block;opacity:.5}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     LOGIN-SCREEN
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="loginScreen" class="center-wrap">
+  <div class="card" style="padding:36px;width:100%;max-width:380px">
+    <div style="text-align:center;margin-bottom:28px">
+      <div class="logo-txt" style="font-size:36px">PrefOS</div>
+      <div style="font-size:11px;font-weight:800;letter-spacing:.22em;color:var(--text-faint);margin-top:6px">PERFORMANCE OS · MASTER</div>
+    </div>
+
+    <div style="margin-bottom:14px">
+      <label class="lbl">E-Mail</label>
+      <input id="loginEmail" type="email" class="inp" placeholder="name@verein.ch" autocomplete="username"/>
+    </div>
+    <div style="margin-bottom:20px">
+      <label class="lbl">Passwort</label>
+      <input id="loginPass" type="password" class="inp" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+
+    <div id="loginErr" style="color:var(--red);font-size:12px;margin-bottom:12px;text-align:center;display:none"></div>
+    <div id="loginOk" style="color:var(--green);font-size:12px;margin-bottom:12px;text-align:center;display:none"></div>
+
+    <button onclick="doLogin()" class="btn-pri" style="width:100%;justify-content:center;padding:12px;font-size:14px;letter-spacing:.05em">ANMELDEN</button>
+
+    <div style="text-align:center;margin-top:18px">
+      <a onclick="openDemoMode()" style="font-size:12px;color:var(--gold);cursor:pointer;text-decoration:underline">Demo-Modus · Rollen testen ohne Login</a>
+    </div>
+
+    <div style="font-size:10px;color:var(--text-faint);text-align:center;margin-top:24px;letter-spacing:.04em">System &amp; Development by Dogus Kaplan</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     APP-SCREEN
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="appScreen" style="display:none">
+
+  <!-- OVERLAY (mobile sidebar) -->
+  <div class="overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div style="padding:20px 16px 4px;flex:1;overflow-y:auto;min-height:0">
+
+      <!-- LOGO -->
+      <div style="margin-bottom:18px;padding:0 8px;display:flex;align-items:center;gap:11px">
+        <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--gold-d));display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:900;color:#0a1018;font-size:18px">P</div>
+        <div style="min-width:0">
+          <div class="logo-txt" style="font-size:20px">PrefOS</div>
+          <div id="clubLabel" style="font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--text-faint);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</div>
+        </div>
+      </div>
+
+      <!-- TEAM-SWITCHER (nur sichtbar wenn mehrere Teams) -->
+      <div id="teamSwitchWrap" style="display:none;padding:0 8px;margin-bottom:14px">
+        <label class="lbl" style="font-size:9px;margin-bottom:4px">AKTIVES TEAM</label>
+        <select id="teamSwitch" class="team-switcher" style="width:100%" onchange="switchTeam(this.value)"></select>
+      </div>
+
+      <!-- NAVIGATION (dynamisch nach Rolle gefüllt) -->
+      <nav id="navigation"></nav>
+
+    </div>
+
+    <!-- FOOTER der Sidebar -->
+    <div style="padding:14px 16px;border-top:1px solid var(--line);flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+        <div style="min-width:0;flex:1">
+          <div id="userName" style="font-size:12px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</div>
+          <div id="userEmail" style="font-size:10px;color:var(--text-faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</div>
+        </div>
+      </div>
+      <button onclick="doLogout()" class="btn-sec" style="width:100%;justify-content:center;padding:8px;font-size:11px">
+        <i class="ti ti-logout"></i> Abmelden
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-wrap">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <button class="hamburger" onclick="openSidebar()"><i class="ti ti-menu-2"></i></button>
+      <div id="pageTitle" style="flex:1;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Dashboard</div>
+      <div id="roleBadge" class="role-badge"></div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content" id="mainContent"></div>
+
+    <!-- FOOTER -->
+    <div style="text-align:center;padding:14px;color:var(--text-faint);font-size:10px;letter-spacing:.06em">System &amp; Development by Dogus Kaplan</div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   📦 KONFIGURATION & STATE
+   ═══════════════════════════════════════════════════════════════════ */
+
+// Supabase-Verbindung (ytittwrknymzhsfsxqmu · Free-Plan · Test)
+const SB_URL = 'https://ytittwrknymzhsfsxqmu.supabase.co';
+const SB_KEY = 'sb_publishable_hGOMRpsY460bYrEsqgqUGQ_gKmRtehy';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+// Globaler State
+const STATE = {
+  mode: 'live',          // 'live' (echte Supabase) oder 'demo' (lokale Test-Daten)
+  user: null,            // Supabase auth.user
+  profile: null,         // profiles-Row: {id, role, club_id, team_id, display_name, player_id, ...}
+  club: null,            // Club-Daten: {id, name, short, logo_url, features}
+  team: null,            // Aktuell ausgewähltes Team: {id, name, typ}
+  myTeams: [],           // Alle Teams auf die der User Zugriff hat
+  features: {            // Features die für den Verein aktiviert sind
+    cycleos: false,
+    lms: true,
+    taktik: true
+  },
+  view: 'dashboard'      // aktuelle Ansicht
+};
+
+/* ═══════════════════════════════════════════════════════════════════
+   🎭 ROLLEN-SYSTEM
+   ═══════════════════════════════════════════════════════════════════ */
+
+// Rollen-Definitionen
+const ROLES = {
+  superadmin:  { label:'Super-Admin',  icon:'crown',    color:'var(--primary)' },
+  cheftrainer: { label:'Cheftrainer',  icon:'whistle',  color:'var(--green)' },
+  assistent:   { label:'Assistent',    icon:'user-plus',color:'#94a3b8' },
+  funktionaer: { label:'Funktionär',   icon:'eye',      color:'var(--blue)' },
+  spieler:     { label:'Spieler',      icon:'user',     color:'var(--gold)' }
+};
+
+/**
+ * Zentrale Berechtigungs-Funktion.
+ * Beispiele:
+ *   if(can('tipsu.write')) { ... }
+ *   if(can('tipsu.delete')) { ... }
+ *   if(can('akademie.solve')) { ... }
+ *
+ * Action-Schema: "<modul>.<aktion>"
+ * Aktionen: read | write | delete | pdf | manage | solve | own
+ */
+function can(action){
+  if(!STATE.profile) return false;
+  const role = STATE.profile.role;
+
+  // Super-Admin darf ALLES
+  if(role === 'superadmin') return true;
+
+  // Berechtigungs-Regeln pro Rolle
+  const RULES = {
+    // ── KADER ──
+    'kader.read':       ['cheftrainer','assistent','funktionaer'],
+    'kader.write':      ['cheftrainer','assistent'],
+    'kader.delete':     ['cheftrainer'],
+
+    // ── TIPS/U BEWERTUNGEN ──
+    'tipsu.read':       ['cheftrainer','assistent','funktionaer'],
+    'tipsu.read.own':   ['spieler'],   // Spieler sieht NUR eigene (aber wir zeigen Spielern KEINE Noten)
+    'tipsu.write':      ['cheftrainer','assistent'],
+    'tipsu.delete':     ['cheftrainer'],
+    'tipsu.pdf':        ['cheftrainer','assistent','funktionaer'],
+
+    // ── LERNZIELE / PHASEN ──
+    'goals.read':       ['cheftrainer','assistent','funktionaer','spieler'],
+    'goals.read.own':   ['spieler'],
+    'goals.write':      ['cheftrainer','assistent'],
+
+    // ── SPIELPLAN / MATCHES ──
+    'matches.read':     ['cheftrainer','assistent','funktionaer','spieler'],
+    'matches.write':    ['cheftrainer','assistent'],
+    'matches.delete':   ['cheftrainer'],
+    'matches.pdf':      ['cheftrainer','assistent','funktionaer'],
+
+    // ── ANWESENHEIT (AWK) ──
+    'awk.read':         ['cheftrainer','assistent'],
+    'awk.write':        ['cheftrainer','assistent'],
+
+    // ── MASTERCLASS (für Trainer/Assistent/Funktionär — Coaching-Inhalte) ──
+    // Dies ist die Trainer-Ausbildungsplattform, NICHT die Spieler-Lernplattform!
+    'masterclass.view':   ['cheftrainer','assistent','funktionaer'],
+    'masterclass.manage': ['cheftrainer'],
+
+    // ── AKADEMIE / LERNPLATTFORM (für Spieler — Lernquiz, Module, Rangliste) ──
+    // Dies ist NICHT die Masterclass. Spieler bekommen hier ihre eigenen Lerninhalte.
+    // Trainer/Assistent können den Fortschritt sehen und Module für die Spieler freischalten.
+    'akademie.solve':     ['spieler'],
+    'akademie.manage':    ['cheftrainer'],
+    'akademie.view':      ['cheftrainer','assistent'],
+
+    // ── SFV LEHRE & TAKTIKBOARD ──
+    'taktik.read':      ['cheftrainer','assistent'],
+    'taktik.write':     ['cheftrainer','assistent'],
+
+    // ── CYCLEOS (nur für Frauen/Mädchen-Teams) ──
+    'cycleos.read':     ['cheftrainer','assistent'],
+    'cycleos.write':    ['cheftrainer','assistent'],
+    'cycleos.read.own': ['spieler'],
+
+    // ── VERLAUF / ARCHIV ──
+    'verlauf.read':     ['cheftrainer','assistent'],
+    'verlauf.pdf':      ['cheftrainer'],
+
+    // ── ADMINISTRATION (NUR SUPERADMIN) ──
+    'admin.clubs':       ['superadmin'],
+    'admin.teams':       ['superadmin'],
+    'admin.users':       ['superadmin'],
+    'admin.licenses':    ['superadmin'],
+    'admin.features':    ['superadmin']
+  };
+
+  const allowedRoles = RULES[action];
+  if(!allowedRoles) return false;
+  return allowedRoles.includes(role);
+}
+
+/**
+ * Prüft ob CycleOS für das aktuelle Team verfügbar ist.
+ * Bedingungen:
+ *   1. Verein hat CycleOS aktiviert (Super-Admin schaltet das frei)
+ *   2. Team-Typ ist Frauen oder Mädchen
+ */
+function isCycleOSAvailable(){
+  if(!STATE.team) return false;
+  if(!STATE.features.cycleos) return false;
+  const teamType = (STATE.team.typ || '').toLowerCase();
+  return teamType === 'frauen' || teamType === 'maedchen';
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🔐 LOGIN / LOGOUT
+   ═══════════════════════════════════════════════════════════════════ */
+
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginErr');
+  const ok = document.getElementById('loginOk');
+  err.style.display = 'none';
+  ok.style.display = 'none';
+
+  if(!email || !pass){
+    err.textContent = 'Bitte E-Mail und Passwort eingeben.';
+    err.style.display = 'block';
+    return;
+  }
+
+  try{
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if(error){
+      err.textContent = 'Login fehlgeschlagen. Bitte E-Mail und Passwort prüfen.';
+      err.style.display = 'block';
+      return;
+    }
+    STATE.user = data.user;
+    STATE.mode = 'live';
+    await afterLogin();
+  }catch(e){
+    err.textContent = 'Fehler: ' + e.message;
+    err.style.display = 'block';
+  }
+}
+
+async function doLogout(){
+  try{ if(STATE.mode === 'live') await sb.auth.signOut(); }catch(e){}
+  STATE.user = null;
+  STATE.profile = null;
+  STATE.club = null;
+  STATE.team = null;
+  STATE.myTeams = [];
+  STATE.mode = 'live';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🚪 ROUTING NACH LOGIN
+   ═══════════════════════════════════════════════════════════════════ */
+
+async function afterLogin(){
+  if(STATE.mode === 'demo'){
+    // Demo-Daten sind schon gesetzt → direkt App zeigen
+    showApp();
+    return;
+  }
+
+  // 1) Profil holen
+  try{
+    const { data: prof, error } = await sb
+      .from('profiles')
+      .select('id, role, club_id, team_id, display_name, player_id')
+      .eq('id', STATE.user.id)
+      .single();
+
+    if(error || !prof){
+      // Profil existiert nicht → Onboarding später, jetzt erstmal Demo-Modus
+      alert('Dein Profil ist noch nicht eingerichtet. Bitte beim Super-Admin melden.');
+      doLogout();
+      return;
+    }
+
+    STATE.profile = prof;
+  }catch(e){
+    alert('Fehler beim Laden des Profils: ' + e.message);
+    doLogout();
+    return;
+  }
+
+  // 2) Club-Daten holen (falls Tabelle existiert)
+  if(STATE.profile.club_id){
+    try{
+      const { data: club } = await sb
+        .from('clubs')
+        .select('id, name, short, logo_url, cycleos_enabled, lms_enabled')
+        .eq('id', STATE.profile.club_id)
+        .single();
+      if(club){
+        STATE.club = club;
+        STATE.features.cycleos = !!club.cycleos_enabled;
+        STATE.features.lms = club.lms_enabled !== false;
+      }
+    }catch(e){
+      // clubs-Tabelle existiert evtl. noch nicht → Default verwenden
+      STATE.club = { name: 'Mein Verein', short: 'MV' };
+    }
+  } else {
+    STATE.club = { name: 'Mein Verein', short: 'MV' };
+  }
+
+  // 3) Teams holen (auf die der User Zugriff hat)
+  await loadMyTeams();
+
+  // 4) App anzeigen
+  showApp();
+}
+
+async function loadMyTeams(){
+  // Für SuperAdmin: alle Teams des Vereins
+  // Für andere: nur ihre zugewiesenen Teams
+  try{
+    let query;
+    if(STATE.profile.role === 'superadmin'){
+      query = sb.from('teams').select('id, name, typ, club_id');
+    } else {
+      // Hier später team_assignments Tabelle nutzen
+      // Vorerst: nur das primäre Team
+      if(STATE.profile.team_id){
+        query = sb.from('teams').select('id, name, typ, club_id').eq('id', STATE.profile.team_id);
+      } else {
+        STATE.myTeams = [];
+        return;
+      }
+    }
+    const { data } = await query;
+    STATE.myTeams = data || [];
+    if(STATE.myTeams.length > 0){
+      STATE.team = STATE.myTeams[0];
+    }
+  }catch(e){
+    // teams-Tabelle existiert evtl. nicht → leer
+    STATE.myTeams = [];
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🎬 DEMO-MODUS (Test ohne Supabase)
+   Zeigt Rollen-Auswahl, lädt Mock-Profil. Hilft beim Testen aller Rollen.
+   ═══════════════════════════════════════════════════════════════════ */
+
+function openDemoMode(){
+  const html = `
+    <div class="card" style="padding:30px;width:100%;max-width:480px;max-height:92vh;overflow:auto">
+      <div style="text-align:center;margin-bottom:20px">
+        <div class="logo-txt" style="font-size:32px">PrefOS</div>
+        <div style="font-size:11px;font-weight:800;letter-spacing:.22em;color:var(--text-faint);margin-top:6px">PERFORMANCE OS · DEMO</div>
+        <div style="margin-top:12px;display:inline-block;font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--green);background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);padding:4px 12px;border-radius:20px">● DEMO-MODUS · KEIN LOGIN</div>
+      </div>
+      <p style="font-size:11px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">Wähle eine Rolle um das System aus dieser Perspektive zu testen. Alle Daten sind nur zum Testen.</p>
+
+      <div style="font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--text-faint);margin:6px 2px 8px">PLATTFORM</div>
+      ${demoTile('superadmin','Super-Admin','Alle Vereine, Teams, Lizenzen','crown','var(--primary)')}
+
+      <div style="font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--text-faint);margin:14px 2px 8px">VEREIN · BSC OLD BOYS</div>
+      ${demoTile('cheftrainer-fe12','Cheftrainer · FE12','Vollzugriff auf FE12','whistle','var(--green)')}
+      ${demoTile('cheftrainer-multi','Cheftrainer · FE12 + Frauen','Mehrere Teams','whistle','var(--green)')}
+      ${demoTile('assistent-fe12','Assistent · FE12','Schreiben, nicht löschen','user-plus','#94a3b8')}
+      ${demoTile('funktionaer','Funktionär (Vorstand)','Nur lesen + PDF','eye','var(--blue)')}
+
+      <div style="font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--text-faint);margin:14px 2px 8px">SPIELER</div>
+      ${demoTile('spieler-fe12','Spieler · FE12','Eigene Lernziele + LMS','user','var(--gold)')}
+      ${demoTile('spielerin-frauen','Spielerin · Frauen','LMS + CycleOS','user','var(--gold)')}
+
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line);text-align:center">
+        <button onclick="location.reload()" style="font-size:11px;color:var(--text-dim);background:none;border:none;cursor:pointer;text-decoration:underline">Zurück zum Login</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('loginScreen').innerHTML = html;
+}
+
+function demoTile(key, title, sub, icon, color){
+  return `<button onclick="loadDemo('${key}')" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card-2);border:1px solid var(--line-2);border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .15s" onmouseenter="this.style.borderColor='${color}'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.12)'">
+    <div style="width:36px;height:36px;border-radius:9px;background:${color}22;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <i class="ti ti-${icon}" style="font-size:18px;color:${color}"></i>
+    </div>
+    <div style="min-width:0">
+      <div style="font-size:13px;font-weight:800;color:var(--text)">${title}</div>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:1px">${sub}</div>
+    </div>
+  </button>`;
+}
+
+function loadDemo(key){
+  STATE.mode = 'demo';
+  const DEMO_CLUB = { id:'demo-club', name:'BSC Old Boys', short:'BSC OB', cycleos_enabled:true, lms_enabled:true };
+  const DEMO_TEAMS = {
+    fe12:    { id:'team-fe12',    name:'FE12 Old Boys', typ:'aktive',  club_id:'demo-club' },
+    frauen:  { id:'team-frauen',  name:'Frauen 1.Liga', typ:'frauen',  club_id:'demo-club' },
+    u15:     { id:'team-u15',     name:'U15',           typ:'knaben',  club_id:'demo-club' }
+  };
+
+  STATE.club = DEMO_CLUB;
+  STATE.features.cycleos = true;
+  STATE.features.lms = true;
+
+  switch(key){
+    case 'superadmin':
+      STATE.profile = { id:'demo-sa', role:'superadmin', display_name:'Dogus Kaplan (Super)', club_id:'demo-club' };
+      STATE.myTeams = Object.values(DEMO_TEAMS);
+      STATE.team = DEMO_TEAMS.fe12;
+      break;
+    case 'cheftrainer-fe12':
+      STATE.profile = { id:'demo-ct', role:'cheftrainer', display_name:'Trainer FE12', club_id:'demo-club', team_id:'team-fe12' };
+      STATE.myTeams = [DEMO_TEAMS.fe12];
+      STATE.team = DEMO_TEAMS.fe12;
+      break;
+    case 'cheftrainer-multi':
+      STATE.profile = { id:'demo-ctm', role:'cheftrainer', display_name:'Trainer Multi', club_id:'demo-club', team_id:'team-fe12' };
+      STATE.myTeams = [DEMO_TEAMS.fe12, DEMO_TEAMS.frauen];
+      STATE.team = DEMO_TEAMS.fe12;
+      break;
+    case 'assistent-fe12':
+      STATE.profile = { id:'demo-as', role:'assistent', display_name:'Assistent FE12', club_id:'demo-club', team_id:'team-fe12' };
+      STATE.myTeams = [DEMO_TEAMS.fe12];
+      STATE.team = DEMO_TEAMS.fe12;
+      break;
+    case 'funktionaer':
+      STATE.profile = { id:'demo-fk', role:'funktionaer', display_name:'Vorstandsmitglied', club_id:'demo-club', team_id:'team-fe12' };
+      STATE.myTeams = [DEMO_TEAMS.fe12];
+      STATE.team = DEMO_TEAMS.fe12;
+      break;
+    case 'spieler-fe12':
+      STATE.profile = { id:'demo-sp', role:'spieler', display_name:'Leart Abdulahi', club_id:'demo-club', team_id:'team-fe12', player_id:'p-001' };
+      STATE.myTeams = [DEMO_TEAMS.fe12];
+      STATE.team = DEMO_TEAMS.fe12;
+      break;
+    case 'spielerin-frauen':
+      STATE.profile = { id:'demo-spf', role:'spieler', display_name:'Lara Müller', club_id:'demo-club', team_id:'team-frauen', player_id:'p-100' };
+      STATE.myTeams = [DEMO_TEAMS.frauen];
+      STATE.team = DEMO_TEAMS.frauen;
+      break;
+  }
+
+  STATE.user = { email: STATE.profile.display_name.toLowerCase().replace(/\s+/g,'.') + '@demo.ch' };
+  showApp();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🖥️ APP ANZEIGEN
+   ═══════════════════════════════════════════════════════════════════ */
+
+function showApp(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+
+  // User-Info
+  document.getElementById('userName').textContent = STATE.profile.display_name || 'User';
+  document.getElementById('userEmail').textContent = (STATE.user && STATE.user.email) || '—';
+  document.getElementById('clubLabel').textContent = STATE.club ? STATE.club.short || STATE.club.name : '—';
+
+  // Rolle-Badge
+  const role = STATE.profile.role;
+  const roleBadge = document.getElementById('roleBadge');
+  roleBadge.className = 'role-badge ' + role;
+  roleBadge.innerHTML = `<i class="ti ti-${ROLES[role].icon}"></i> ${ROLES[role].label}`;
+
+  // Team-Switcher (nur wenn mehr als 1 Team)
+  const tsWrap = document.getElementById('teamSwitchWrap');
+  const tsSelect = document.getElementById('teamSwitch');
+  if(STATE.myTeams.length > 1){
+    tsWrap.style.display = 'block';
+    tsSelect.innerHTML = STATE.myTeams.map(t => `<option value="${t.id}" ${t.id===STATE.team.id?'selected':''}>${t.name}</option>`).join('');
+  } else {
+    tsWrap.style.display = 'none';
+  }
+
+  // Navigation rendern
+  renderNavigation();
+
+  // Default-Ansicht
+  navigateTo('dashboard');
+}
+
+function switchTeam(teamId){
+  const t = STATE.myTeams.find(x => x.id === teamId);
+  if(!t) return;
+  STATE.team = t;
+  renderNavigation();   // CycleOS könnte sich ein/ausblenden
+  navigateTo(STATE.view);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🧭 NAVIGATION (Sidebar) — dynamisch nach Rolle
+   ═══════════════════════════════════════════════════════════════════ */
+
+function renderNavigation(){
+  const nav = document.getElementById('navigation');
+  const role = STATE.profile.role;
+  const showCycleOS = isCycleOSAvailable() && (can('cycleos.read') || can('cycleos.read.own'));
+  let html = '';
+
+  // ── 1) DASHBOARD (alle) ──
+  html += navItem('dashboard','layout-dashboard','Dashboard');
+
+  // ── 2) SUPER-ADMIN: ADMINISTRATION ──
+  if(role === 'superadmin'){
+    html += navLabel('Administration');
+    html += navItem('admin-clubs','building','Vereine');
+    html += navItem('admin-teams','users-group','Teams');
+    html += navItem('admin-users','user-cog','Benutzer');
+    html += navItem('admin-licenses','license','Lizenzen');
+    html += navItem('admin-features','toggle-right','Module aktivieren');
+  }
+
+  // ── 3) SPIELER: MEIN BEREICH ──
+  // Spieler bekommen einen eigenen Bereich mit ihren persönlichen Sachen
+  if(role === 'spieler'){
+    html += navLabel('Mein Bereich');
+    html += navItem('my-profile','user-circle','Mein Profil');
+    html += navItem('goals','target','Meine Lernziele');
+    if(can('akademie.solve')) html += navItem('akademie','school','Meine Akademie');
+    html += navItem('matches','soccer-field','Spielplan');
+  }
+
+  // ── 4) TRAINER/ASSISTENT/FUNKTIONÄR: KADER & ENTWICKLUNG ──
+  if(can('kader.read')){
+    html += navLabel('Kader & Entwicklung');
+    html += navItem('kader','users','Kader');
+    if(can('tipsu.read')) html += navItem('tipsu','list-check','TIPS/U');
+    if(can('tipsu.read')) html += navItem('vergleich','git-compare','Vergleich');
+    if(can('goals.read')) html += navItem('goals','target','Lernziele');
+    // Akademie-Verwaltung: Trainer/Assistent sehen den Spieler-Fortschritt
+    if(can('akademie.view') || can('akademie.manage')){
+      html += navItem('akademie','school','Spieler-Akademie');
+    }
+  }
+
+  // ── 5) PLANUNG & WETTKAMPF (Trainer/Assistent + Funktionär für Spielplan) ──
+  if(role !== 'spieler' && (can('matches.read') || can('awk.read'))){
+    html += navLabel('Planung & Wettkampf');
+    if(can('awk.read')) html += navItem('makro','calendar-stats','Makrozyklus');
+    if(can('matches.read')) html += navItem('matches','soccer-field','Spielplan');
+    if(can('awk.read')) html += navItem('awk','checklist','Anwesenheit');
+  }
+
+  // ── 6) AUSBILDUNG (Masterclass + Taktik) — NUR Trainer/Assistent/Funktionär ──
+  // Spieler kommen hier NICHT rein — die haben ihre eigene Akademie!
+  if(can('masterclass.view') || can('taktik.read')){
+    html += navLabel('Ausbildung');
+    if(can('masterclass.view')) html += navItem('masterclass','school','Masterclass');
+    if(can('taktik.read')) html += navItem('lehre','compass','SFV Lehre');
+    if(can('taktik.read')) html += navItem('taktik','strategy','Taktikboard');
+  }
+
+  // ── 7) CYCLEOS (nur wenn Frauen/Mädchen-Team + Verein aktiviert) ──
+  if(showCycleOS){
+    html += navLabel('Mädchen & Frauen');
+    html += navItem('cycleos','wave-sine','CycleOS');
+  }
+
+  // ── 8) VERLAUF ──
+  if(can('verlauf.read')){
+    html += navLabel('Sonstiges');
+    html += navItem('verlauf','history','Verlauf / Archiv');
+  }
+
+  nav.innerHTML = html;
+}
+
+function navItem(id, icon, label){
+  return `<button class="btn-nav" data-view="${id}" onclick="navigateTo('${id}')"><i class="ti ti-${icon}"></i>${label}</button>`;
+}
+function navLabel(text){
+  return `<div class="nav-section-label">${text}</div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   📍 VIEW ROUTING
+   ═══════════════════════════════════════════════════════════════════ */
+
+function navigateTo(view){
+  // Sicherheits-Check
+  if(!isViewAllowed(view)){
+    renderLockedView();
+    return;
+  }
+
+  STATE.view = view;
+
+  // Active-State in Sidebar
+  document.querySelectorAll('.btn-nav').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === view);
+  });
+
+  // Title oben setzen
+  document.getElementById('pageTitle').textContent = viewTitle(view);
+
+  // Render
+  renderView(view);
+
+  // Mobile: Sidebar schliessen
+  closeSidebar();
+}
+
+function viewTitle(view){
+  const titles = {
+    'dashboard':'Dashboard',
+    'admin-clubs':'Vereine verwalten',
+    'admin-teams':'Teams verwalten',
+    'admin-users':'Benutzer verwalten',
+    'admin-licenses':'Lizenzen',
+    'admin-features':'Module aktivieren',
+    'kader':'Kader',
+    'tipsu':'TIPS/U Bewertungen',
+    'vergleich':'Spieler-Vergleich',
+    'goals':'Lernziele & Phasen',
+    'my-profile':'Mein Profil',
+    'makro':'Makrozyklus',
+    'matches':'Spielplan',
+    'awk':'Anwesenheit',
+    'masterclass':'Masterclass · Trainer-Ausbildung',
+    'akademie':'Spieler-Akademie',
+    'lehre':'SFV Lehre',
+    'taktik':'Taktikboard Pro',
+    'cycleos':'CycleOS',
+    'verlauf':'Verlauf / Archiv'
+  };
+  return titles[view] || view;
+}
+
+/**
+ * Sicherheits-Gate: prüft ob die aktuelle Rolle die View sehen darf.
+ */
+function isViewAllowed(view){
+  const role = STATE.profile.role;
+
+  // Dashboard immer erlaubt
+  if(view === 'dashboard') return true;
+
+  // Admin-Views nur Super-Admin
+  if(view.startsWith('admin-')) return role === 'superadmin';
+
+  // View-zu-Permission Mapping
+  const map = {
+    'kader':      'kader.read',
+    'tipsu':      'tipsu.read',
+    'vergleich':  'tipsu.read',
+    'goals':      'goals.read',
+    'my-profile': null,  // Spieler-only, separat geprüft
+    'makro':      'awk.read',
+    'matches':    'matches.read',
+    'awk':        'awk.read',
+    'masterclass': null,  // siehe unten (Trainer-LMS)
+    'akademie':    null,  // siehe unten (Spieler-LMS)
+    'lehre':      'taktik.read',
+    'taktik':     'taktik.read',
+    'cycleos':    null,  // siehe unten
+    'verlauf':    'verlauf.read'
+  };
+
+  // Spezielle Checks
+  if(view === 'my-profile') return role === 'spieler';
+  if(view === 'masterclass') return can('masterclass.view');
+  if(view === 'akademie') return can('akademie.solve') || can('akademie.view') || can('akademie.manage');
+  if(view === 'cycleos') return isCycleOSAvailable() && (can('cycleos.read') || can('cycleos.read.own'));
+
+  const perm = map[view];
+  if(perm === undefined) return false;
+  if(perm === null) return true;
+  return can(perm);
+}
+
+function renderLockedView(){
+  document.getElementById('mainContent').innerHTML = `
+    <div class="locked-view">
+      <i class="ti ti-lock"></i>
+      <h2>Kein Zugriff</h2>
+      <p style="color:var(--text-dim);max-width:420px;margin:8px auto 0">Du hast keine Berechtigung für diese Ansicht. Falls du denkst dass das falsch ist, wende dich bitte an deinen Verein-Administrator.</p>
+    </div>
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🎨 VIEW RENDERER (Platzhalter — werden in späteren Schritten gefüllt)
+   ═══════════════════════════════════════════════════════════════════ */
+
+function renderView(view){
+  const c = document.getElementById('mainContent');
+  switch(view){
+    case 'dashboard':     return renderDashboard();
+    case 'admin-clubs':   return renderPlaceholder(c,'building','Vereine verwalten','Hier verwaltest du alle Vereine die PrefOS nutzen. Du kannst Vereine anlegen, Lizenzen verwalten und CycleOS für Mädchen-/Frauen-Abteilungen freischalten.');
+    case 'admin-teams':   return renderPlaceholder(c,'users-group','Teams verwalten','Hier legst du Teams pro Verein an, definierst den Team-Typ (Aktive / Frauen / Mädchen / Knaben), und weist Trainer + Assistenten zu.');
+    case 'admin-users':   return renderPlaceholder(c,'user-cog','Benutzer verwalten','Hier siehst du alle Benutzer (Trainer, Assistenten, Funktionäre, Spieler), kannst Rollen ändern und neue Einladungen verschicken.');
+    case 'admin-licenses':return renderPlaceholder(c,'license','Lizenzen','Hier verwaltest du die Lizenzen pro Verein. Aktuell aktiv, Ablaufdatum, Anzahl Teams im Paket.');
+    case 'admin-features':return renderPlaceholder(c,'toggle-right','Module aktivieren','Hier schaltest du pro Verein einzelne Module frei: CycleOS für Mädchen-/Frauen-Abteilung, Masterclass-LMS, erweiterte Funktionen.');
+    case 'kader':         return renderPlaceholder(c,'users','Kader','Spielerliste mit Geburtsdatum, Position, Stammverein. Trainer können Spieler hinzufügen, bearbeiten oder entfernen (Cheftrainer auch löschen).');
+    case 'tipsu':         return renderPlaceholder(c,'list-check','TIPS/U Bewertungen','Die T-I-P-S-U Bewertungsmatrix (Technik, Spielintelligenz, Persönlichkeit, Schnelligkeit, Umfeld) pro Spieler und Zyklus (Z1-Z4). Trainer/Assistenten erfassen, Funktionäre können lesen und als PDF exportieren.');
+    case 'vergleich':     return renderPlaceholder(c,'git-compare','Spieler-Vergleich','Vergleich zwischen Spielern auf TIPS/U-Basis. Radar-Charts, Tabellen.');
+    case 'goals':         return renderPlaceholder(c,'target','Lernziele & Phasen','Phasenbezogene Lernziele (Vorbereitung, Wettbewerb, Erholung). Trainer/Assistenten erfassen Ziele, alle (inklusive Spieler und Funktionäre) können sie lesen.');
+    case 'my-profile':    return renderPlaceholder(c,'user-circle','Mein Profil','Deine persönliche Übersicht: deine Lernziele, deine LMS-Fortschritte, dein Spielplan. Keine Noten oder Vergleiche.');
+    case 'makro':         return renderPlaceholder(c,'calendar-stats','Makrozyklus','Saisonplanung in Phasen: Vorbereitung I, Wettbewerb I, Winterpause, Vorbereitung II, Wettbewerb II.');
+    case 'matches':       return renderPlaceholder(c,'soccer-field','Spielplan','Alle Matches: Meisterschaft, Cup, Testspiele. Mit Ergebnissen, Torschützen, Spielberichten.');
+    case 'awk':           return renderPlaceholder(c,'checklist','Anwesenheit','Trainings- und Spielanwesenheit pro Spieler.');
+    case 'masterclass':   return renderPlaceholder(c,'school','Masterclass · Trainer-Ausbildung','🎯 ZUGRIFF: Cheftrainer, Assistent, Funktionär — Spieler haben KEINEN Zugriff. Hier finden Trainer/Assistenten/Funktionäre Coaching-Module zu Trainingsmethodik, Spielphilosophie, Belastungssteuerung und Entwicklungspsychologie. Spieler haben ihre eigene Akademie mit altersgerechten Inhalten.');
+    case 'akademie':      return renderPlaceholder(c,'school','Spieler-Akademie','Eigene Lerninhalte für Spieler · Q1-Q4 Module: Team-DNA, Mentalität, Offensive, Defensive. Quiz-System, Rangliste pro Team. Spieler lösen, Trainer/Assistent sehen Fortschritt, Cheftrainer verwaltet die Module.');
+    case 'lehre':         return renderPlaceholder(c,'compass','SFV Lehre · Spielphilosophie','Die 4 Spielphasen: Ball haben, Ball verlieren, Ball nicht haben, Ball erobern.');
+    case 'taktik':        return renderPlaceholder(c,'strategy','Taktikboard Pro','Visuelles Taktik-Board zum Zeichnen von Aufstellungen und Spielzügen.');
+    case 'cycleos':       return renderPlaceholder(c,'wave-sine','CycleOS','Zyklus-Tracking für Mädchen und Frauen. Phasen-basiertes Training, Schmerz- und Energie-Verlauf, Gesundheits-Check. Datenschutz: jede Spielerin sieht NUR ihre eigenen Daten.');
+    case 'verlauf':       return renderPlaceholder(c,'history','Verlauf / Archiv','Vergangene Saisons, archivierte Spieler, alte Bewertungen.');
+    default:              return renderPlaceholder(c,'question-mark','Unbekannt','Diese Ansicht ist noch nicht definiert.');
+  }
+}
+
+function renderPlaceholder(container, icon, title, description){
+  let badges = '';
+  // Zeige welche Aktionen die aktuelle Rolle hier hätte
+  const view = STATE.view;
+  const actions = [];
+  if(view === 'tipsu'){
+    if(can('tipsu.write')) actions.push({label:'Schreiben',color:'var(--green)'});
+    if(can('tipsu.delete')) actions.push({label:'Löschen',color:'var(--red)'});
+    if(can('tipsu.pdf')) actions.push({label:'PDF Export',color:'var(--blue)'});
+    if(can('tipsu.read') && !can('tipsu.write')) actions.push({label:'Nur lesen',color:'var(--text-dim)'});
+  } else if(view === 'matches'){
+    if(can('matches.write')) actions.push({label:'Schreiben',color:'var(--green)'});
+    if(can('matches.delete')) actions.push({label:'Löschen',color:'var(--red)'});
+    if(can('matches.pdf')) actions.push({label:'PDF Export',color:'var(--blue)'});
+  } else if(view === 'kader'){
+    if(can('kader.write')) actions.push({label:'Schreiben',color:'var(--green)'});
+    if(can('kader.delete')) actions.push({label:'Löschen',color:'var(--red)'});
+  } else if(view === 'goals'){
+    if(can('goals.write')) actions.push({label:'Schreiben',color:'var(--green)'});
+    if(can('goals.read')) actions.push({label:'Lesen',color:'var(--blue)'});
+  } else if(view === 'masterclass'){
+    if(can('masterclass.manage')) actions.push({label:'Verwalten',color:'var(--gold)'});
+    if(can('masterclass.view')) actions.push({label:'Lesen / Lernen',color:'var(--blue)'});
+  } else if(view === 'akademie'){
+    if(can('akademie.manage')) actions.push({label:'Verwalten',color:'var(--gold)'});
+    if(can('akademie.view')) actions.push({label:'Fortschritt sehen',color:'var(--blue)'});
+    if(can('akademie.solve')) actions.push({label:'Module lösen',color:'var(--green)'});
+  } else if(view === 'cycleos'){
+    if(can('cycleos.write')) actions.push({label:'Schreiben',color:'var(--green)'});
+    if(can('cycleos.read.own')) actions.push({label:'Nur eigene',color:'var(--gold)'});
+  }
+  if(actions.length){
+    badges = '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:14px">' +
+      actions.map(a => `<span class="badge" style="color:${a.color};background:${a.color}22;border:1px solid ${a.color}44">${a.label}</span>`).join('') +
+      '</div>';
+  }
+
+  container.innerHTML = `
+    ${STATE.mode === 'demo' ? '<div class="demo-banner"><i class="ti ti-info-circle"></i> Du bist im DEMO-Modus · Alle Daten sind nur zum Testen</div>' : ''}
+    <div class="placeholder-view">
+      <i class="ti ti-${icon}"></i>
+      <h2>${title}</h2>
+      <p>${description}</p>
+      ${badges}
+      <p style="margin-top:20px;font-size:11px;color:var(--text-faint)">Modul wird in einem späteren Schritt gebaut · aktuell nur Platzhalter</p>
+    </div>
+  `;
+}
+
+function renderDashboard(){
+  const c = document.getElementById('mainContent');
+  const role = STATE.profile.role;
+  const teamName = STATE.team ? STATE.team.name : '—';
+  const clubName = STATE.club ? STATE.club.name : '—';
+
+  let stats = '';
+  let primary = '';
+
+  if(role === 'superadmin'){
+    stats = `
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Vereine</div><div class="stat-value" style="color:var(--primary)">1</div></div>
+        <div class="stat-card"><div class="stat-label">Teams aktiv</div><div class="stat-value" style="color:var(--green)">${STATE.myTeams.length}</div></div>
+        <div class="stat-card"><div class="stat-label">Lizenzen</div><div class="stat-value" style="color:var(--blue)">1</div></div>
+        <div class="stat-card"><div class="stat-label">CycleOS aktiv</div><div class="stat-value" style="color:var(--gold)">${STATE.features.cycleos?'JA':'NEIN'}</div></div>
+      </div>
+    `;
+    primary = `
+      <div class="card" style="padding:18px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:800;color:var(--text-dim);letter-spacing:.1em;margin-bottom:8px">SCHNELL-AKTIONEN</div>
+        <div class="tile-grid">
+          <button class="tile" onclick="navigateTo('admin-clubs')">
+            <div class="tile-icon" style="background:rgba(224,123,57,0.15)"><i class="ti ti-building" style="color:var(--primary);font-size:20px"></i></div>
+            <div><div class="tile-title">Verein verwalten</div><div class="tile-sub">Vereine, Lizenzen, Module</div></div>
+          </button>
+          <button class="tile" onclick="navigateTo('admin-teams')">
+            <div class="tile-icon" style="background:rgba(34,197,94,0.15)"><i class="ti ti-users-group" style="color:var(--green);font-size:20px"></i></div>
+            <div><div class="tile-title">Teams</div><div class="tile-sub">Anlegen, zuweisen</div></div>
+          </button>
+          <button class="tile" onclick="navigateTo('admin-features')">
+            <div class="tile-icon" style="background:rgba(201,168,76,0.15)"><i class="ti ti-toggle-right" style="color:var(--gold);font-size:20px"></i></div>
+            <div><div class="tile-title">CycleOS freischalten</div><div class="tile-sub">Pro Verein einzeln</div></div>
+          </button>
+        </div>
+      </div>
+    `;
+  } else if(role === 'spieler'){
+    stats = `
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Mein Team</div><div class="stat-value" style="color:var(--gold);font-size:16px">${teamName}</div></div>
+        <div class="stat-card"><div class="stat-label">Lernmodule</div><div class="stat-value" style="color:var(--green)">0/16</div></div>
+        <div class="stat-card"><div class="stat-label">Nächstes Spiel</div><div class="stat-value" style="color:var(--blue);font-size:14px">—</div></div>
+        <div class="stat-card"><div class="stat-label">Phase</div><div class="stat-value" style="color:var(--primary);font-size:14px">Vorbereitung</div></div>
+      </div>
+    `;
+    primary = `
+      <div class="card" style="padding:18px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:800;color:var(--text-dim);letter-spacing:.1em;margin-bottom:8px">DEIN BEREICH</div>
+        <div class="tile-grid">
+          <button class="tile" onclick="navigateTo('my-profile')">
+            <div class="tile-icon" style="background:rgba(201,168,76,0.15)"><i class="ti ti-user-circle" style="color:var(--gold);font-size:20px"></i></div>
+            <div><div class="tile-title">Mein Profil</div><div class="tile-sub">Lernziele & Fortschritt</div></div>
+          </button>
+          <button class="tile" onclick="navigateTo('akademie')">
+            <div class="tile-icon" style="background:rgba(99,102,241,0.15)"><i class="ti ti-school" style="color:var(--blue);font-size:20px"></i></div>
+            <div><div class="tile-title">Meine Akademie</div><div class="tile-sub">Lernmodule lösen</div></div>
+          </button>
+          <button class="tile" onclick="navigateTo('matches')">
+            <div class="tile-icon" style="background:rgba(34,197,94,0.15)"><i class="ti ti-soccer-field" style="color:var(--green);font-size:20px"></i></div>
+            <div><div class="tile-title">Spielplan</div><div class="tile-sub">Kommende Spiele</div></div>
+          </button>
+          ${isCycleOSAvailable() ? `
+          <button class="tile" onclick="navigateTo('cycleos')">
+            <div class="tile-icon" style="background:rgba(43,196,180,0.15)"><i class="ti ti-wave-sine" style="color:#2bc4b4;font-size:20px"></i></div>
+            <div><div class="tile-title">CycleOS</div><div class="tile-sub">Mein Zyklus & Phase</div></div>
+          </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  } else if(role === 'funktionaer'){
+    stats = `
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Team</div><div class="stat-value" style="color:var(--blue);font-size:16px">${teamName}</div></div>
+        <div class="stat-card"><div class="stat-label">Spieler</div><div class="stat-value" style="color:var(--green)">—</div></div>
+        <div class="stat-card"><div class="stat-label">Nächstes Spiel</div><div class="stat-value" style="color:var(--primary);font-size:14px">—</div></div>
+        <div class="stat-card"><div class="stat-label">Lesen + PDF</div><div class="stat-value" style="color:var(--gold);font-size:14px">Aktiv</div></div>
+      </div>
+    `;
+    primary = `
+      <div class="card" style="padding:18px">
+        <div style="font-size:11px;font-weight:800;color:var(--text-dim);letter-spacing:.1em;margin-bottom:8px">FUNKTIONÄR · NUR LESEN</div>
+        <p style="font-size:12px;color:var(--text-dim);line-height:1.6">Als Funktionär hast du Lesezugriff auf Kader, TIPS/U Bewertungen, Lernziele und Spielplan. Du kannst alles als PDF exportieren, aber nichts ändern.</p>
+      </div>
+    `;
+  } else {
+    // Cheftrainer / Assistent
+    stats = `
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Aktives Team</div><div class="stat-value" style="color:var(--gold);font-size:16px">${teamName}</div></div>
+        <div class="stat-card"><div class="stat-label">Spieler</div><div class="stat-value" style="color:var(--green)">—</div></div>
+        <div class="stat-card"><div class="stat-label">Nächstes Spiel</div><div class="stat-value" style="color:var(--blue);font-size:14px">—</div></div>
+        <div class="stat-card"><div class="stat-label">Phase</div><div class="stat-value" style="color:var(--primary);font-size:14px">Vorbereitung</div></div>
+      </div>
+    `;
+    primary = `
+      <div class="card" style="padding:18px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:800;color:var(--text-dim);letter-spacing:.1em;margin-bottom:8px">SCHNELL-AKTIONEN</div>
+        <div class="tile-grid">
+          <button class="tile" onclick="navigateTo('kader')">
+            <div class="tile-icon" style="background:rgba(34,197,94,0.15)"><i class="ti ti-users" style="color:var(--green);font-size:20px"></i></div>
+            <div><div class="tile-title">Kader</div><div class="tile-sub">Spielerliste</div></div>
+          </button>
+          <button class="tile" onclick="navigateTo('tipsu')">
+            <div class="tile-icon" style="background:rgba(201,168,76,0.15)"><i class="ti ti-list-check" style="color:var(--gold);font-size:20px"></i></div>
+            <div><div class="tile-title">TIPS/U Bewertung</div><div class="tile-sub">${can('tipsu.write')?'Erfassen':'Lesen'}</div></div>
+          </button>
+          <button class="tile" onclick="navigateTo('matches')">
+            <div class="tile-icon" style="background:rgba(99,102,241,0.15)"><i class="ti ti-soccer-field" style="color:var(--blue);font-size:20px"></i></div>
+            <div><div class="tile-title">Spielplan</div><div class="tile-sub">Matches verwalten</div></div>
+          </button>
+          <button class="tile" onclick="navigateTo('goals')">
+            <div class="tile-icon" style="background:rgba(224,123,57,0.15)"><i class="ti ti-target" style="color:var(--primary);font-size:20px"></i></div>
+            <div><div class="tile-title">Lernziele</div><div class="tile-sub">Phasenziele</div></div>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  c.innerHTML = `
+    ${STATE.mode === 'demo' ? '<div class="demo-banner"><i class="ti ti-info-circle"></i> Du bist im DEMO-Modus · Alle Daten sind nur zum Testen — die echten Daten kommen aus Supabase</div>' : ''}
+
+    <div style="margin-bottom:18px">
+      <div style="font-size:11px;font-weight:700;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase">Willkommen zurück</div>
+      <h1 style="font-size:24px;font-weight:800;margin-top:4px;letter-spacing:-.02em">${STATE.profile.display_name || 'User'}</h1>
+      <div style="font-size:13px;color:var(--text-dim);margin-top:2px">${clubName} ${role!=='superadmin' ? '· ' + teamName : ''}</div>
+    </div>
+
+    ${stats}
+    ${primary}
+
+    <div class="card" style="padding:16px">
+      <div style="font-size:11px;font-weight:800;color:var(--text-dim);letter-spacing:.1em;margin-bottom:10px">SYSTEM-STATUS</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;font-size:12px">
+        <div><span style="color:var(--text-dim)">Rolle:</span> <b style="color:${ROLES[role].color}">${ROLES[role].label}</b></div>
+        <div><span style="color:var(--text-dim)">Modus:</span> <b style="color:${STATE.mode==='demo'?'var(--green)':'var(--gold)'}">${STATE.mode==='demo'?'DEMO':'LIVE'}</b></div>
+        <div><span style="color:var(--text-dim)">CycleOS:</span> <b style="color:${STATE.features.cycleos?'var(--green)':'var(--red)'}">${STATE.features.cycleos?'Aktiviert':'Nicht aktiviert'}</b></div>
+        <div><span style="color:var(--text-dim)">LMS:</span> <b style="color:${STATE.features.lms?'var(--green)':'var(--red)'}">${STATE.features.lms?'Aktiviert':'Nicht aktiviert'}</b></div>
+      </div>
+    </div>
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   📱 MOBILE SIDEBAR
+   ═══════════════════════════════════════════════════════════════════ */
+
+function openSidebar(){
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🔒 SECURITY LAYER · Query-Wrapper
+   Diese Funktion wickelt jede DB-Abfrage so ab dass automatisch nur
+   die Daten zurückkommen die der User sehen DARF.
+   Wird in Schritt 2 + 3 wirklich verwendet — hier als Vorbereitung.
+   ═══════════════════════════════════════════════════════════════════ */
+
+function secureQuery(table){
+  if(STATE.mode === 'demo'){
+    // Im Demo-Modus: kein echter Query
+    return null;
+  }
+
+  let query = sb.from(table).select('*');
+
+  // SuperAdmin sieht alles in seinem Verein
+  if(STATE.profile.role === 'superadmin'){
+    if(STATE.profile.club_id) query = query.eq('club_id', STATE.profile.club_id);
+    return query;
+  }
+
+  // Spieler darf NUR seine eigenen Daten sehen
+  if(STATE.profile.role === 'spieler'){
+    if(STATE.profile.player_id){
+      query = query.eq('player_id', STATE.profile.player_id);
+    } else {
+      // Sicherheits-Fallback: gar nichts zurückgeben
+      query = query.eq('id', '__never_match__');
+    }
+    return query;
+  }
+
+  // Cheftrainer / Assistent / Funktionär: nur ihre Teams
+  const teamIds = STATE.myTeams.map(t => t.id);
+  if(teamIds.length === 0){
+    query = query.eq('id', '__never_match__');
+  } else {
+    query = query.in('team_id', teamIds);
+  }
+  return query;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🚀 INIT
+   ═══════════════════════════════════════════════════════════════════ */
+
+// Beim Laden: Check ob Session existiert
+window.addEventListener('load', async () => {
+  try{
+    const { data: { session } } = await sb.auth.getSession();
+    if(session && session.user){
+      STATE.user = session.user;
+      STATE.mode = 'live';
+      await afterLogin();
+    }
+  }catch(e){
+    // Wenn Supabase nicht erreichbar: trotzdem Login-Screen zeigen
+    console.warn('Supabase nicht erreichbar:', e);
+  }
+});
+
+// Enter-Taste im Passwort-Feld → Login
+document.addEventListener('keypress', e => {
+  if(e.key === 'Enter' && document.getElementById('loginScreen').style.display !== 'none'){
+    doLogin();
+  }
+});
+
+// Für DevTools / Debugging
+window.PrefOS = { STATE, can, isCycleOSAvailable, secureQuery, ROLES };
+</script>
+
+</body>
+</html>
