@@ -144,34 +144,72 @@ input:focus,select:focus,textarea:focus{outline:2px solid rgba(201,168,76,0.4)!i
 <body>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     LOGIN-SCREEN
+     LOGIN-SCREEN · Login + Registrieren als Tabs
      ═══════════════════════════════════════════════════════════════ -->
 <div id="loginScreen" class="center-wrap">
-  <div class="card" style="padding:36px;width:100%;max-width:380px">
-    <div style="text-align:center;margin-bottom:28px">
+  <div class="card" style="padding:32px;width:100%;max-width:400px">
+
+    <!-- LOGO -->
+    <div style="text-align:center;margin-bottom:24px">
       <div class="logo-txt" style="font-size:36px">PrefOS</div>
       <div style="font-size:11px;font-weight:800;letter-spacing:.22em;color:var(--text-faint);margin-top:6px">PERFORMANCE OS · MASTER</div>
     </div>
 
-    <div style="margin-bottom:14px">
-      <label class="lbl">E-Mail</label>
-      <input id="loginEmail" type="email" class="inp" placeholder="name@verein.ch" autocomplete="username"/>
-    </div>
-    <div style="margin-bottom:20px">
-      <label class="lbl">Passwort</label>
-      <input id="loginPass" type="password" class="inp" placeholder="••••••••" autocomplete="current-password"/>
+    <!-- TAB SWITCHER -->
+    <div style="display:flex;background:rgba(255,255,255,0.04);border:1px solid var(--line-2);border-radius:8px;padding:3px;margin-bottom:20px;gap:3px">
+      <button id="tabLogin" onclick="switchAuthTab('login')" style="flex:1;padding:8px;border:none;background:var(--gold-soft);color:var(--gold);border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;letter-spacing:.05em">ANMELDEN</button>
+      <button id="tabSignup" onclick="switchAuthTab('signup')" style="flex:1;padding:8px;border:none;background:transparent;color:var(--text-dim);border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;letter-spacing:.05em">REGISTRIEREN</button>
     </div>
 
-    <div id="loginErr" style="color:var(--red);font-size:12px;margin-bottom:12px;text-align:center;display:none"></div>
-    <div id="loginOk" style="color:var(--green);font-size:12px;margin-bottom:12px;text-align:center;display:none"></div>
+    <!-- ── LOGIN FORM ── -->
+    <div id="loginForm">
+      <div style="margin-bottom:12px">
+        <label class="lbl">E-Mail</label>
+        <input id="loginEmail" type="email" class="inp" placeholder="name@verein.ch" autocomplete="username"/>
+      </div>
+      <div style="margin-bottom:18px">
+        <label class="lbl">Passwort</label>
+        <input id="loginPass" type="password" class="inp" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
 
-    <button onclick="doLogin()" class="btn-pri" style="width:100%;justify-content:center;padding:12px;font-size:14px;letter-spacing:.05em">ANMELDEN</button>
+      <div id="loginErr" style="color:var(--red);font-size:12px;margin-bottom:10px;text-align:center;display:none;background:rgba(239,68,68,0.08);padding:8px;border-radius:6px"></div>
 
-    <div style="text-align:center;margin-top:18px">
-      <a onclick="openDemoMode()" style="font-size:12px;color:var(--gold);cursor:pointer;text-decoration:underline">Demo-Modus · Rollen testen ohne Login</a>
+      <button onclick="doLogin()" class="btn-pri" style="width:100%;justify-content:center;padding:12px;font-size:14px;letter-spacing:.05em">Anmelden</button>
     </div>
 
-    <div style="font-size:10px;color:var(--text-faint);text-align:center;margin-top:24px;letter-spacing:.04em">System &amp; Development by Dogus Kaplan</div>
+    <!-- ── SIGNUP FORM ── -->
+    <div id="signupForm" style="display:none">
+      <div style="margin-bottom:12px">
+        <label class="lbl">Vor- und Nachname</label>
+        <input id="signupName" type="text" class="inp" placeholder="Max Muster"/>
+      </div>
+      <div style="margin-bottom:12px">
+        <label class="lbl">E-Mail</label>
+        <input id="signupEmail" type="email" class="inp" placeholder="name@verein.ch" autocomplete="email"/>
+      </div>
+      <div style="margin-bottom:12px">
+        <label class="lbl">Passwort (min. 6 Zeichen)</label>
+        <input id="signupPass" type="password" class="inp" placeholder="••••••••" autocomplete="new-password"/>
+      </div>
+      <div style="margin-bottom:14px">
+        <label class="lbl">Passwort bestätigen</label>
+        <input id="signupPass2" type="password" class="inp" placeholder="••••••••" autocomplete="new-password"/>
+      </div>
+
+      <div id="signupErr" style="color:var(--red);font-size:12px;margin-bottom:10px;text-align:center;display:none;background:rgba(239,68,68,0.08);padding:8px;border-radius:6px"></div>
+      <div id="signupOk" style="color:var(--green);font-size:12px;margin-bottom:10px;text-align:center;display:none;background:rgba(34,197,94,0.08);padding:8px;border-radius:6px"></div>
+
+      <button onclick="doSignup()" class="btn-pri" style="width:100%;justify-content:center;padding:12px;font-size:14px;letter-spacing:.05em">Konto erstellen</button>
+
+      <p style="font-size:10px;color:var(--text-faint);text-align:center;margin-top:12px;line-height:1.5">Nach der Registrierung muss dich dein Verein-Administrator freischalten und einem Team zuweisen.</p>
+    </div>
+
+    <!-- FOOTER -->
+    <div style="text-align:center;margin-top:22px;padding-top:14px;border-top:1px solid var(--line)">
+      <a onclick="openDemoMode()" style="font-size:10px;color:var(--text-faint);cursor:pointer;letter-spacing:.06em">⚙ Tester-Modus (Rollen ohne Login)</a>
+    </div>
+
+    <div style="font-size:10px;color:var(--text-faint);text-align:center;margin-top:14px;letter-spacing:.04em">System &amp; Development by Dogus Kaplan</div>
   </div>
 </div>
 
@@ -424,7 +462,7 @@ async function doLogout(){
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   🚪 ROUTING NACH LOGIN
+   🚪 ROUTING NACH LOGIN — LIVE über Supabase RPC
    ═══════════════════════════════════════════════════════════════════ */
 
 async function afterLogin(){
@@ -434,81 +472,149 @@ async function afterLogin(){
     return;
   }
 
-  // 1) Profil holen
+  // EIN RPC-Aufruf liefert: Profil + Club + Teams + Features + Lizenz-Status
   try{
-    const { data: prof, error } = await sb
-      .from('profiles')
-      .select('id, role, club_id, team_id, display_name, player_id')
-      .eq('id', STATE.user.id)
-      .single();
+    const { data, error } = await sb.rpc('get_me');
 
-    if(error || !prof){
-      // Profil existiert nicht → Onboarding später, jetzt erstmal Demo-Modus
-      alert('Dein Profil ist noch nicht eingerichtet. Bitte beim Super-Admin melden.');
-      doLogout();
+    if(error){
+      showLoginError(
+        'Datenbank-Fehler beim Abrufen deines Profils:\n\n' + error.message +
+        '\n\n→ Ist das SQL-Schema (Schritt 2) bereits in Supabase ausgeführt?'
+      );
+      await sb.auth.signOut();
+      STATE.user = null;
       return;
     }
 
-    STATE.profile = prof;
-  }catch(e){
-    alert('Fehler beim Laden des Profils: ' + e.message);
-    doLogout();
-    return;
-  }
-
-  // 2) Club-Daten holen (falls Tabelle existiert)
-  if(STATE.profile.club_id){
-    try{
-      const { data: club } = await sb
-        .from('clubs')
-        .select('id, name, short, logo_url, cycleos_enabled, lms_enabled')
-        .eq('id', STATE.profile.club_id)
-        .single();
-      if(club){
-        STATE.club = club;
-        STATE.features.cycleos = !!club.cycleos_enabled;
-        STATE.features.lms = club.lms_enabled !== false;
-      }
-    }catch(e){
-      // clubs-Tabelle existiert evtl. noch nicht → Default verwenden
-      STATE.club = { name: 'Mein Verein', short: 'MV' };
+    // Login funktioniert, aber kein Profil-Eintrag → First-Time Setup zeigen
+    if(!data || !data.profile){
+      showFirstTimeSetup();
+      return;
     }
-  } else {
-    STATE.club = { name: 'Mein Verein', short: 'MV' };
-  }
 
-  // 3) Teams holen (auf die der User Zugriff hat)
-  await loadMyTeams();
+    // Alles da → State befüllen
+    STATE.profile  = data.profile;
+    STATE.club     = data.club || { name:'Mein Verein', short:'MV' };
+    STATE.myTeams  = data.teams || [];
+    STATE.features = {
+      cycleos: !!(data.features && data.features.cycleos),
+      lms:     !(data.features && data.features.lms === false),
+      taktik:  !(data.features && data.features.taktik === false)
+    };
 
-  // 4) App anzeigen
-  showApp();
-}
-
-async function loadMyTeams(){
-  // Für SuperAdmin: alle Teams des Vereins
-  // Für andere: nur ihre zugewiesenen Teams
-  try{
-    let query;
-    if(STATE.profile.role === 'superadmin'){
-      query = sb.from('teams').select('id, name, typ, club_id');
-    } else {
-      // Hier später team_assignments Tabelle nutzen
-      // Vorerst: nur das primäre Team
-      if(STATE.profile.team_id){
-        query = sb.from('teams').select('id, name, typ, club_id').eq('id', STATE.profile.team_id);
-      } else {
-        STATE.myTeams = [];
-        return;
-      }
-    }
-    const { data } = await query;
-    STATE.myTeams = data || [];
+    // Team setzen
     if(STATE.myTeams.length > 0){
       STATE.team = STATE.myTeams[0];
+    } else if(STATE.profile.role !== 'superadmin'){
+      // Trainer/Spieler ohne Team-Zuweisung
+      showLoginError(
+        'Du hast noch kein Team zugewiesen.\n\n' +
+        'Falls du Trainer/Assistent bist: bitte beim Super-Admin melden.\n' +
+        'Falls du Spieler bist: dein Trainer muss dich noch einrichten.'
+      );
+      await sb.auth.signOut();
+      STATE.user = null;
+      return;
     }
+
+    // Letzten Login-Zeitpunkt aktualisieren (best-effort, nicht kritisch)
+    sb.from('profiles').update({ last_login_at: new Date().toISOString() }).eq('id', STATE.user.id).then(()=>{});
+
+    showApp();
   }catch(e){
-    // teams-Tabelle existiert evtl. nicht → leer
-    STATE.myTeams = [];
+    showLoginError('Unerwarteter Fehler:\n\n' + e.message);
+    try{ await sb.auth.signOut(); }catch(_){}
+    STATE.user = null;
+  }
+}
+
+/**
+ * Zeigt eine Fehler-Meldung auf dem Login-Screen.
+ */
+function showLoginError(msg){
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  const err = document.getElementById('loginErr');
+  const ok = document.getElementById('loginOk');
+  if(ok) ok.style.display = 'none';
+  if(err){
+    err.textContent = msg;
+    err.style.display = 'block';
+    err.style.whiteSpace = 'pre-wrap';
+    err.style.textAlign = 'left';
+    err.style.maxHeight = '300px';
+    err.style.overflowY = 'auto';
+    err.style.fontSize = '11px';
+    err.style.padding = '10px';
+    err.style.background = 'rgba(239,68,68,0.08)';
+    err.style.border = '1px solid rgba(239,68,68,0.3)';
+    err.style.borderRadius = '8px';
+  }
+}
+
+/**
+ * Zeigt First-Time-Setup wenn User eingeloggt ist aber noch kein Profil hat.
+ * Bietet an: "Werde der erste Super-Admin für BSC Old Boys"
+ */
+function showFirstTimeSetup(){
+  const userId = STATE.user.id;
+  const userEmail = STATE.user.email || '—';
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginScreen').innerHTML = `
+    <div class="card" style="padding:30px;width:100%;max-width:480px;max-height:92vh;overflow:auto">
+      <div style="text-align:center;margin-bottom:20px">
+        <div class="logo-txt" style="font-size:32px">PrefOS</div>
+        <div style="font-size:11px;font-weight:800;letter-spacing:.22em;color:var(--text-faint);margin-top:6px">ERSTE EINRICHTUNG</div>
+        <div style="margin-top:12px;display:inline-block;font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--green);background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);padding:4px 12px;border-radius:20px">● LOGIN ERFOLGREICH</div>
+      </div>
+
+      <p style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:16px">Dein Supabase-Login funktioniert, aber dein Profil ist noch nicht in der App registriert. Klicke unten um dich als <b style="color:var(--gold)">Super-Admin</b> für den ersten Test-Verein zu registrieren.</p>
+
+      <div style="background:var(--card-2);border:1px solid var(--line-2);border-radius:8px;padding:12px;margin-bottom:14px;font-size:11px">
+        <div style="margin-bottom:6px"><span style="color:var(--text-dim)">User-ID:</span> <code style="color:var(--gold);font-size:10px">${userId}</code></div>
+        <div><span style="color:var(--text-dim)">E-Mail:</span> <b style="color:var(--text)">${userEmail}</b></div>
+      </div>
+
+      <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.25);border-radius:8px;padding:12px;margin-bottom:18px;font-size:11px;color:#a5b4fc">
+        <b style="color:#818cf8">ℹ️ Hinweis:</b> Diese Setup-Option funktioniert nur EINMAL — sobald der erste Super-Admin existiert, ist sie gesperrt. So bleibt das System sicher.
+      </div>
+
+      <button onclick="doFirstAdminSetup()" class="btn-pri" style="width:100%;justify-content:center;padding:12px;font-size:13px;letter-spacing:.05em">
+        <i class="ti ti-crown"></i> Als Super-Admin für BSC Old Boys registrieren
+      </button>
+
+      <div id="setupErr" style="color:var(--red);font-size:11px;margin-top:12px;text-align:left;display:none;padding:10px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:6px;white-space:pre-wrap"></div>
+
+      <div style="text-align:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)">
+        <button onclick="doLogout()" style="font-size:11px;color:var(--text-dim);background:none;border:none;cursor:pointer;text-decoration:underline">Abmelden und neu anfangen</button>
+      </div>
+    </div>
+  `;
+}
+
+async function doFirstAdminSetup(){
+  const errBox = document.getElementById('setupErr');
+  errBox.style.display = 'none';
+  try{
+    const { data, error } = await sb.rpc('register_first_admin', {
+      p_club_id: '11111111-1111-1111-1111-111111111111'
+    });
+    if(error){
+      errBox.textContent = 'Fehler: ' + error.message + '\n\n→ Hast du die neueste SQL ausgeführt? (mit register_first_admin RPC)';
+      errBox.style.display = 'block';
+      return;
+    }
+    if(data && data.success === false){
+      errBox.textContent = data.reason || 'Setup nicht möglich.';
+      errBox.style.display = 'block';
+      return;
+    }
+    // Erfolgreich → Profil neu laden
+    location.reload();
+  }catch(e){
+    errBox.textContent = 'Unerwarteter Fehler: ' + e.message;
+    errBox.style.display = 'block';
   }
 }
 
